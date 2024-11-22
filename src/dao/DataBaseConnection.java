@@ -1,7 +1,6 @@
-package Connection;
+package dao;
 
 import java.sql.Connection;
-import java.sql.DriverAction;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
@@ -9,14 +8,13 @@ public class DataBaseConnection {
 
     //Declaring and Defining the Variables that are used to connect with database in such way that
     // they cannot be accessed and cannot be modified in the class
-
     private static final String URL = "jdbc:mysql://localhost:3306/EmployeePayRoll";
     private static final String USERNAME = "root";
     private static final String PASSWORD = "1234";
 
     //getDataBaseConnection() method used to establish the connection between java code and the database and after
     // Successful connection it will return the Connection which can be used in further.
-    public Connection getDataBaseConnection() {
+    public Connection getDataBaseConnection1() {
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -26,25 +24,18 @@ public class DataBaseConnection {
         return connection;
     }
 
-    public Connection getSqlServerConnection() {
-
-        String url = "jdbc:sqlserver://localhost:1433;databaseName=EmployeePayRoll";
+    public Connection getDataBaseConnection() {
+        String url = "jdbc:sqlserver://;serverName=localhost;databaseName=employee_pay_roll;trustServerCertificate=true";
         String username = "Babu";
         String password = "Babu";
 
+        Connection connection;
         try {
-            // Establish the connection
-            Connection connection = DriverManager.getConnection(url, username, password);
-            System.out.println("Connection established successfully!");
-
-            // Perform database operations here (e.g., querying the database)
-
-            // Close the connection
-            connection.close();
+            connection = DriverManager.getConnection(url, username, password);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
-    }
 
+        return connection;
+    }
 }

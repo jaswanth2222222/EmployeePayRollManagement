@@ -1,4 +1,6 @@
-package Payslips;
+package dao;
+
+import model.Payslip;
 
 public interface PaySlipDao {
 
@@ -6,7 +8,7 @@ public interface PaySlipDao {
     void generatePaySlip(String employeeId);
 
     //Abstract method for returning payslip of an Employee
-    Payslips returnPaySlip(String employeeId);
+    Payslip findPaySlip(String employeeId);
 
     //Abstract method for deleting payslips of an employee
     void deletePaySlips(String employeeId);

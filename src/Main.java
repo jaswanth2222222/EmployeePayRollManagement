@@ -1,6 +1,5 @@
-import Connection.DataBaseConnection;
-import Employees.EmployeeDaoImplementation;
-import Payslips.PaySlipDaoImplementation;
++import dao.*;
+import model.Employee;
 
 import java.util.Scanner;
 
@@ -8,13 +7,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        DataBaseConnection connection = new DataBaseConnection();
-        connection.getSqlServerConnection();
-
         //Initialising the EmployeeDaoImplementation class to call the methods inside it
-        EmployeeDaoImplementation employeeDaoImplementation = new EmployeeDaoImplementation();
+        //EmployeeDaoImpl employeeDaoImpl = new EmployeeDaoImpl();
         //Initialising the PayslipService class to call the methods inside it
-        PaySlipDaoImplementation paySlipDaoImplementation = new PaySlipDaoImplementation();
+        //PaySlipDaoImpl paySlipDaoImpl = new PaySlipDaoImpl();
+        //Initialising the Employee class to call the methods inside it
+        Employee employee = new Employee();
 
         //Declaring the variable to define them in run time or dynamically
         String employeeId;
@@ -38,13 +36,15 @@ public class Main {
             System.out.println("Press 6 to Promote the Employee");
             System.out.println("Press 7 to Remove the Employee");
             System.out.println("Press 8 to Exit");
+            System.out.println();
 
             //Asking User to Pick a Number
             System.out.print("Please pick a number : ");
             String strOpinion = scanner.next();
+
             int opinion = 0;
             try {
-                if (Integer.parseInt(strOpinion)>0 && Integer.parseInt(strOpinion)<9)
+                if (Integer.parseInt(strOpinion) > 0 && Integer.parseInt(strOpinion) < 9)
                     opinion = Integer.parseInt(strOpinion);
             } catch (NumberFormatException e) {
                 System.out.println();
@@ -58,6 +58,7 @@ public class Main {
                 break;
 
             //Using Switch Case to check the User Opinion depending on the users opinion the operation will be performed
+
             switch (opinion) {
                 //Checking the User need using Switch case statements
                 case 1:
@@ -67,15 +68,19 @@ public class Main {
                     System.out.print("Enter Employee Id : ");
                     scanner.nextLine();
                     employeeId = scanner.nextLine();
+                    employee.setEmployeeId(employeeId);
                     System.out.print("Enter Employee Name : ");
                     employeeName = scanner.nextLine();
+                    employee.setName(employeeName);
                     System.out.print("Enter Employee Department : ");
                     employeeDepartment = scanner.nextLine();
+                    employee.setDepartment(employeeDepartment);
                     System.out.print("Enter Employee Salary : ");
                     employeeSalary = scanner.nextDouble();
+                    employee.setSalary(employeeSalary);
 
                     //Calling addEmployee() by passing arguments
-                    employeeDaoImplementation.addEmployee(employeeId, employeeName, employeeDepartment, employeeSalary);
+                    employeeDaoImpl.addEmployee(employee);
 
                     break;
                 case 2:
@@ -87,7 +92,7 @@ public class Main {
                     employeeId = scanner.nextLine();
 
                     //Calling getEmployeeByIId() by passing arguments
-                    employeeDaoImplementation.getEmployeeById(employeeId);
+                    employeeDaoImpl.getEmployeeById(employeeId);
 
                     break;
                 case 3:
@@ -99,7 +104,7 @@ public class Main {
                     employeeId = scanner.nextLine();
 
                     //Calling generatePaySlip() by passing arguments
-                    paySlipDaoImplementation.generatePaySlip(employeeId);
+                    paySlipDaoImpl.generatePaySlip(employeeId);
 
                     break;
                 case 4:
@@ -109,15 +114,19 @@ public class Main {
                     System.out.print("Enter Employee Id Need to Update: ");
                     scanner.nextLine();
                     employeeId = scanner.nextLine();
+                    employee.setEmployeeId(employeeId);
                     System.out.print("Enter Updated Employee Name : ");
                     employeeName = scanner.nextLine();
+                    employee.setName(employeeName);
                     System.out.print("Enter Updated Employee Department : ");
                     employeeDepartment = scanner.nextLine();
+                    employee.setDepartment(employeeDepartment);
                     System.out.print("Enter Updated Employee Salary : ");
                     employeeSalary = scanner.nextDouble();
+                    employee.setSalary(employeeSalary);
 
                     //Calling updateEmployee() by passing arguments
-                    employeeDaoImplementation.updateEmployeeById(employeeId, employeeName, employeeDepartment, employeeSalary);
+                    employeeDaoImpl.updateEmployeeById(employee);
 
                     break;
                 case 5:
@@ -129,7 +138,7 @@ public class Main {
                     departmentName = scanner.nextLine();
 
                     //Calling generateDepartmentReport() by passing arguments
-                    employeeDaoImplementation.generateDepartmentReport(departmentName);
+                    employeeDaoImpl.generateDepartmentReport(departmentName);
 
                     break;
 
@@ -140,6 +149,7 @@ public class Main {
                     System.out.print("Enter Employee Id to Promote or Increment of Salary : ");
                     scanner.nextLine();
                     employeeId = scanner.nextLine();
+                    employee.setEmployeeId(employeeId);
 
                     //Variable declaration to store user opinion regarding the promotion of Employee
                     System.out.println("    Press --p to promote, Press --i to increase salary or press --b to promote and increment");
@@ -155,7 +165,7 @@ public class Main {
                             System.out.print("Enter Department name to Promote : ");
                             departmentName = scanner.nextLine();
 
-                            employeeDaoImplementation.promoteEmployee(employeeId, departmentName);
+                            employeeDaoImpl.promoteEmployee(employeeId, departmentName);
 
                             break;
                         case "i":
@@ -165,7 +175,7 @@ public class Main {
                             System.out.print("Enter Salary After increment : ");
                             employeeSalary = scanner.nextDouble();
 
-                            employeeDaoImplementation.incrementEmployee(employeeId, employeeSalary);
+                            employeeDaoImpl.incrementEmployee(employeeId, employeeSalary);
 
                             break;
                         case "b":
@@ -174,11 +184,13 @@ public class Main {
                             System.out.println();
                             System.out.print("Enter Department name to Promote : ");
                             departmentName = scanner.nextLine();
+                            employee.setDepartment(departmentName);
                             System.out.println();
                             System.out.print("Enter Salary After increment : ");
                             employeeSalary = scanner.nextDouble();
+                            employee.setSalary(employeeSalary);
 
-                            employeeDaoImplementation.promoteAndIncrementEmployee(employeeId, departmentName, employeeSalary);
+                            employeeDaoImpl.promoteAndIncrementEmployee(employee);
 
                             break;
                         default:
@@ -199,16 +211,17 @@ public class Main {
                     employeeId = scanner.nextLine();
 
                     //Calling deleteEmployee method to remove the employee from database
-                    employeeDaoImplementation.deleteEmployee(employeeId);
+                    employeeDaoImpl.deleteEmployee(employeeId);
 
                     break;
 
-                    //Default case if user enter other than provided numbers
+                //Default case if user enter other than provided numbers
                 default:
                     //println() methods for User Experience
                     System.out.println();
                     System.out.println("Please Enter a valid number..");
             }
+
         }
         //Presenting Thank you to the User
         System.out.println();

@@ -3,37 +3,12 @@ Database: MySql
 Resources: mysql-connector-j-9.1.0.jar (This resource has been added in the ProjectStructure -> Modules -> Dependencies ->
                                         + -> add Jar file or dependency -> select file and apply)
 
-PROJECT STRUCTURE :
-    EmployeePayrollManagementSystem
-        src
-            Connection
-                DataBaseConnection.java
-            Departments
-                Departments.java
-                DepartmentsDao.java (Interface)
-                DepartmentDaoImplementation.java
-            Employees
-                Employees.java
-                EmployeeDao.java (Interface)
-                EmployeeDaoImplementation.java
-            PaySlips
-                PaySlips.java
-                PaySlipsDao.java
-                PaySlipDaoImplementation.java
-                PaySlipService.java
-            RecoveryPaySlips
-                RecoveryPaySlips.java
-                RecoveryPaySlipDao.java (Interface)
-                RecoveryPaySlipDaoImplementation.java
-            Main.java
-
-
 DataBaseConnection.java :
-        In this class getConnection() method will return a Connection Object which is used to connect with database
+        In this class getConnection() method will return a connection Object which is used to connect with database
         all the credentials in this class are private so there will be no access to another database from outside class.
         (To secure the username, password and url made a separate class)
 
-Departments.java, Employees.java and PaySlips.java:
+departments.java, employees.java and PaySlips.java:
         These are the POJO classes with private Variables and getter setter methods to access the data indirectly
 
 DepartmentsDao.java, PaySlipsDao.java and EmployeeDao.java :
@@ -55,12 +30,12 @@ MySql Commands :
         department varchar(255),
         salary decimal(10, 2) not null);
 
-    Departments table:
+    departments table:
         create table departments (
         department_id int not null auto_increment primary key,
         name varchar(255) unique);
 
-    Payslips table:
+    payslips table:
         create table payslips(
         payslip_id int not null primary key auto_increment,
         employee_id varchar(25),
@@ -79,7 +54,7 @@ MySql Commands :
                 net_salary decimal(10, 2) not null,
                 date_generated date not null);
 
-                This Recovery table is used to store the Payslips of the Deleted Employees for any future Use and Structure of
+                This Recovery table is used to store the payslips of the Deleted employees for any future Use and Structure of
                 table is same as payslips but here there are no keys or constraints present in it
 
 

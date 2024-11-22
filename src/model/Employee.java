@@ -1,18 +1,18 @@
-package Employees;
+package model;
 
-public class Employees {
+public class Employee {
 
     //Declaring the Column names and their DataTypes as private Variables and named exactly as column names
 
-    private String employee_id;
+    private String employeeId;
     private String name;
     private String department;
     private double salary;
 
     //Constructor with Arguments to initialise data and access the data if needed
 
-    public Employees(String employee_id, String name, String department, double salary) {
-        this.employee_id = employee_id;
+    public Employee(String employeeId, String name, String department, double salary) {
+        this.employeeId = employeeId;
         this.name = name;
         this.department = department;
         this.salary = salary;
@@ -20,15 +20,15 @@ public class Employees {
 
     //Getters and Setters for Retrieving and Modifying the data in private variables respectively
 
-    public Employees() {
+    public Employee() {
     }
 
-    public String getEmployee_id() {
-        return employee_id;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
-    public void setEmployee_id(String employee_id) {
-        this.employee_id = employee_id;
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
     public String getName() {
@@ -60,7 +60,7 @@ public class Employees {
     @Override
     public String toString() {
         return "Employees.Employees{" +
-                "employee_id='" + employee_id + '\'' +
+                "employee_id='" + employeeId + '\'' +
                 ", name='" + name + '\'' +
                 ", department='" + department + '\'' +
                 ", salary=" + salary +
