@@ -17,10 +17,9 @@ public class PaySlipDaoImpl implements PaySlipDao {
     private static final String RETRIEVE_PAY_SLIP_QUERY = "select * from payslips where employee_id = ?";
     //Query for Deleting the Set of records when they match with passed employee id
     private static final String DELETE_PAY_SLIPS_QUERY = "delete from payslips where employee_id = ?";
-    EmployeeDaoImpl employeeDaoImpl = new EmployeeDaoImpl();
-    DataBaseConnection dataBaseConnection = new DataBaseConnection();
-    //Establishing the Connection
-    Connection connection = dataBaseConnection.getDataBaseConnection();
+    final EmployeeDaoImpl employeeDaoImpl = new EmployeeDaoImpl();
+    final DataBaseConnection dataBaseConnection = new DataBaseConnection();
+
 
     @Override
     //This method is Designed to add the record into a Word file and table
@@ -28,8 +27,11 @@ public class PaySlipDaoImpl implements PaySlipDao {
 
         String tempEmployeeId = employeeId.strip().toLowerCase();
 
+        //Establishing the Connection
+        Connection connection = dataBaseConnection.getDataBaseConnection();
+
         //Calling and Storing the Returned Employee Object
-        Employee employee = employeeDaoImpl.findEmployee(tempEmployeeId);
+        Employee employee = employeeDaoImpl.findEmployeeById(tempEmployeeId);
         double grossSalary;
 
         //Checking Weather the returned Object is null, or it contains any data
@@ -63,7 +65,7 @@ public class PaySlipDaoImpl implements PaySlipDao {
                     System.out.println();
                     connection.close();
                 }
-                HashMap<String, Double> financeMap = new HashMap<String, Double>();
+                HashMap<String, Double> financeMap = new HashMap<>();
                 financeMap.put("grossSalary", grossSalary);
                 financeMap.put("pfDeductions", pfDeductions);
                 financeMap.put("tax", tax);
@@ -72,9 +74,14 @@ public class PaySlipDaoImpl implements PaySlipDao {
 
             }// To Handle Exception raised by database
             catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.out.println("An Error Occurred while Generating the Payslip" + e.getMessage());
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
+                }
             }
-
         } else {
             System.out.println();
             System.out.println("Employee Not Found Please try Again");
@@ -87,13 +94,15 @@ public class PaySlipDaoImpl implements PaySlipDao {
     //This method is Designed to return a single Payslip details
     public Payslip findPaySlip(String employeeId) {
 
+        //Establishing the Connection
+        Connection connection = dataBaseConnection.getDataBaseConnection();
         //Stripping the Strings to remove the spaces around the String
         String tempEmployeeId = employeeId.strip().toLowerCase();
         //Entering Block if EmployeeId is not empty
         if (!tempEmployeeId.isEmpty()) {
 
             //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
-            PreparedStatement pstmtForExistingPaySlip = null;
+            PreparedStatement pstmtForExistingPaySlip;
             try {
                 //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
                 pstmtForExistingPaySlip = connection.prepareStatement(RETRIEVE_PAY_SLIP_QUERY);
@@ -113,8 +122,13 @@ public class PaySlipDaoImpl implements PaySlipDao {
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
+                }
             }
-
         } //Else Block For Empty Data
         else {
             System.out.println();
@@ -130,6 +144,8 @@ public class PaySlipDaoImpl implements PaySlipDao {
     //This method is designed to delete the Payslip records from database
     public void deletePaySlips(String employeeId) {
 
+        //Establishing the Connection
+        Connection connection = dataBaseConnection.getDataBaseConnection();
         try {
             //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
             PreparedStatement pstmtForDeletePaySlips = connection.prepareStatement(DELETE_PAY_SLIPS_QUERY);
@@ -140,7 +156,12 @@ public class PaySlipDaoImpl implements PaySlipDao {
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
+            }
         }
     }
-
 }

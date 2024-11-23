@@ -8,13 +8,13 @@ import model.Employee;
 public interface EmployeeDao {
 
     //Abstract method for Adding Employee to the Database
-    void addEmployee(Employee employee);
+    boolean addEmployee(Employee employee);
 
     //Abstract method for Retrieving the Employee Details based on their Unique Employee id
     void getEmployeeById(String employeeId);
 
     //Abstract method for Updating existing Employee in the Database with their respective Employee id
-    void updateEmployeeById(Employee employee);
+    boolean updateEmployeeById(Employee employee);
 
     //Abstract method for Retrieving Employees with respect to their working Departments
     void generateDepartmentReport(String departmentName);
@@ -23,7 +23,7 @@ public interface EmployeeDao {
     void promoteEmployee(String employeeId, String departmentName);
 
     //Abstract method for Incrementing the Employee Salary
-    void incrementEmployee(String employeeId, double Salary);
+    void incrementEmployee(String employeeId, double salary);
 
     //Abstract method for Promoting and Incrementing the Employee
     void promoteAndIncrementEmployee(Employee employee);

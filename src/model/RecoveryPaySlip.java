@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class RecoveryPaySlip {
 
-    //Declaring the Column names and their DataTypes ans private Variables
+    //Declaring the Column names and their DataTypes and private Variables
 
     private int payslipId;
     private String employeeId;
@@ -83,12 +83,12 @@ public class RecoveryPaySlip {
     public String
     toString() {
         return "RecoveryPayslips{" +
-                "payslip_id='" + payslipId + '\'' +
-                ", employee_id='" + employeeId + '\'' +
-                ", gross_salary=" + grossSalary +
+                "payslipId='" + payslipId + '\'' +
+                ", employeeId='" + employeeId + '\'' +
+                ", grossSalary=" + grossSalary +
                 ", deductions=" + deductions +
-                ", net_salary=" + netSalary +
-                ", date_generated=" + dateGenerated +
+                ", netSalary=" + netSalary +
+                ", dateGenerated=" + dateGenerated +
                 '}';
     }
 }

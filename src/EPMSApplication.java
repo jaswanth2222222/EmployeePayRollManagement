@@ -1,18 +1,30 @@
-+import dao.*;
+import dao.*;
 import model.Employee;
 
 import java.util.Scanner;
 
-public class Main {
+public class EPMSApplication {
 
     public static void main(String[] args) {
 
+        //Calling performOperation() to perform the Tasks wanted to User
+        performOperation();
+
+        //Presenting Thank you to the User
+        presentThankful();
+    }
+
+    private static void performOperation() {
+
         //Initialising the EmployeeDaoImplementation class to call the methods inside it
-        //EmployeeDaoImpl employeeDaoImpl = new EmployeeDaoImpl();
+        EmployeeDaoImpl employeeDaoImpl = new EmployeeDaoImpl();
         //Initialising the PayslipService class to call the methods inside it
-        //PaySlipDaoImpl paySlipDaoImpl = new PaySlipDaoImpl();
+        PaySlipDaoImpl paySlipDaoImpl = new PaySlipDaoImpl();
         //Initialising the Employee class to call the methods inside it
         Employee employee = new Employee();
+
+        //Initialising the Scanner class to take dynamic inputs
+        Scanner scanner = new Scanner(System.in);
 
         //Declaring the variable to define them in run time or dynamically
         String employeeId;
@@ -21,10 +33,6 @@ public class Main {
         double employeeSalary;
         String departmentName;
 
-        //Initialising the Scanner class to take dynamic inputs
-        Scanner scanner = new Scanner(System.in);
-
-        //While(true) loop for infinite iterations (until manually break the loop)
         while (true) {
 
             //println() methods to make the user understand better
@@ -42,13 +50,15 @@ public class Main {
             System.out.print("Please pick a number : ");
             String strOpinion = scanner.next();
 
-            int opinion = 0;
+            int opinion;
             try {
-                if (Integer.parseInt(strOpinion) > 0 && Integer.parseInt(strOpinion) < 9)
-                    opinion = Integer.parseInt(strOpinion);
+                opinion = Integer.parseInt(strOpinion);
+                if (opinion < 1 && opinion > 8) {
+                    System.out.println("Please Enter Number in given range.");
+                }
             } catch (NumberFormatException e) {
                 System.out.println();
-                System.out.println("Please Pick an integer value in given range");
+                System.out.println("Please Pick an integer value.");
                 System.out.println();
                 continue;
             }
@@ -67,7 +77,7 @@ public class Main {
                     System.out.println();
                     System.out.print("Enter Employee Id : ");
                     scanner.nextLine();
-                    employeeId = scanner.nextLine();
+                    employeeId = scanner.nextLine(); //""
                     employee.setEmployeeId(employeeId);
                     System.out.print("Enter Employee Name : ");
                     employeeName = scanner.nextLine();
@@ -223,9 +233,13 @@ public class Main {
             }
 
         }
+    }
+
+    private static void presentThankful() {
         //Presenting Thank you to the User
         System.out.println();
         System.out.println("Thank you for Using the Payroll Management System");
         System.out.println("Happy to Serve You...");
     }
+
 }

@@ -10,9 +10,9 @@ public class RecoveryPaySlipDaoImpl implements RecoveryPaySlipDao {
     private static final String COPY_PAYSLIPS_QUERY = "insert into recovery_payslips select * from payslips " +
             "where employee_id = ?";
     //initialising the Connection Class to call getConnection() Method it can be used in any of the method
-    DataBaseConnection dataBaseConnection = new DataBaseConnection();
+    final DataBaseConnection dataBaseConnection = new DataBaseConnection();
     //Got Connection
-    Connection connection = dataBaseConnection.getDataBaseConnection();
+    final Connection connection = dataBaseConnection.getDataBaseConnection();
 
     @Override
     public void movePaySlips(String employeeId) {
@@ -32,7 +32,13 @@ public class RecoveryPaySlipDaoImpl implements RecoveryPaySlipDao {
                 paySlipDaoImpl.deletePaySlips(employeeId);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println("An Error Occurred while Removing the Employee Details" + e.getMessage());
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
+            }
         }
 
 

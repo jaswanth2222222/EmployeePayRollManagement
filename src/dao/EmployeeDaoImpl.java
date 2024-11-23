@@ -4,22 +4,32 @@ package dao;
 
 import model.Employee;
 import model.Payslip;
+import service.ValidationService;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-//EmployeeDaoImplementation implements EmployeeDao to utilize and implement the abstract methods in the EmployeeDao interface
+//EmployeeDaoImplementation implements EmployeeDao to utilize and implement the abstract
+// methods in the EmployeeDao interface
 public class EmployeeDaoImpl implements EmployeeDao {
+
+    //Query to Update the Department for the Given Employee id
+    private static final String UPDATE_DEPT_BY_EMPLOYEE_ID = "update employees set department = ? where employee_id = ?";
+    //Query for retrieving the Department to check weather dept iis present or not
+    private static final String RETRIEVE_DEPARTMENT_BY_NAME_QUERY = "select * from departments where name like ?";
+
+    //Query to Update the Department for the Given Employee id
+    private static final String UPDATE_DEPT_AND_SALARY_BY_EMPLOYEE_ID = "update employees set department = ?, " +
+            "salary = ? where employee_id = ?";
 
     //Query for inserting the Employee Details
     private static final String INSERT_EMPLOYEE_QUERY = "insert into employees (employee_id, name, " +
             "department, salary) values (?, ?, ?, ?)";
     //Query for retrieving the Employee to check the uniqueness of employee id
     private static final String RETRIEVE_EMPLOYEE_BY_ID_QUERY = "select * from employees where employee_id like ?";
-    //Query for retrieving the Department to check weather dept iis present or not
-    private static final String RETRIEVE_DEPARTMENT_BY_NAME_QUERY = "select * from departments where name like ?";
+
     //Query to retrieve Employee Details Based on Department name
     private static final String FETCH_EMPLOYEES_BY_DEPT_NAME = "select employee_id, name, salary from employees " +
             "where department = ?";
@@ -30,103 +40,117 @@ public class EmployeeDaoImpl implements EmployeeDao {
     private static final String AVG_SALARY_OF_EMPLOYEES_BY_DEPT_NAME = "select avg(salary) as average from " +
             "employees where department = ?";
     //Query to Update the Department for the Given Employee id
-    private static final String UPDATE_DEPT_BY_EMPLOYEE_ID = "update employees set department = ? where employee_id = ?";
-    //Query to Update the Department for the Given Employee id
     private static final String UPDATE_SALARY_BY_EMPLOYEE_ID = "update employees set salary = ? where employee_id = ?";
-    //Query to Update the Department for the Given Employee id
-    private static final String UPDATE_DEPT_AND_SALARY_BY_EMPLOYEE_ID = "update employees set department = ?, " +
-            "salary = ? where employee_id = ?";
     //Query Syntax for deleting the Employee from Employees
     private static final String DELETE_EMPLOYEE_BY_ID_QUERY = "delete from employees where employee_id = ?";
     //Query to Update the Employee Details where Employee id matches the passed Employee id
     private static final String UPDATE_EMPLOYEE_QUERY = "update employees set name = ?, department = ?, " +
             "salary = ? where employee_id = ?";
     //initialising the Connection Class to call getConnection() Method it can be used in any of the method
-    DataBaseConnection dataBaseConnection = new DataBaseConnection();
+    final DataBaseConnection dataBaseConnection = new DataBaseConnection();
     //initialising the Connection Class to call getConnection() Method it can be used in any of the method
-    RecoveryPaySlipDaoImpl recoveryPaySlipDaoImpl = new RecoveryPaySlipDaoImpl();
-    //Got Connection
-    Connection connection = dataBaseConnection.getDataBaseConnection();
+    final RecoveryPaySlipDaoImpl recoveryPaySlipDaoImpl = new RecoveryPaySlipDaoImpl();
+    final ValidationService validationService = new ValidationService();
+
+    public boolean isDepartmentExists(String departmentName) {
+
+        //Got Connection
+        Connection connection = dataBaseConnection.getDataBaseConnection();
+        //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
+        PreparedStatement pstmtForExistingDepartment;
+        ResultSet resultSetForDepartment = null;
+        try {
+            pstmtForExistingDepartment = connection.prepareStatement(RETRIEVE_DEPARTMENT_BY_NAME_QUERY);
+            pstmtForExistingDepartment.setString(1, departmentName);
+            //ResultSet for storing Department Based on Name
+            resultSetForDepartment = pstmtForExistingDepartment.executeQuery();
+
+            boolean departmentExist = resultSetForDepartment.next();
+            return departmentExist;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+                resultSetForDepartment.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public boolean isEmployeeExists(String employeeId) {
+        //Got Connection
+        Connection connection = dataBaseConnection.getDataBaseConnection();
+
+        //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
+        ResultSet rsForExistingEmployee = null;
+        try {
+            PreparedStatement pstmtForExistingEmployee;
+            pstmtForExistingEmployee = connection.prepareStatement(RETRIEVE_EMPLOYEE_BY_ID_QUERY);
+            pstmtForExistingEmployee.setString(1, employeeId);
+            //ResultSet for storing Employee Based on id
+            rsForExistingEmployee = pstmtForExistingEmployee.executeQuery();
+            //.next() returns a boolean value if the data is present in table's next row
+            return rsForExistingEmployee.next();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                connection.close();
+                rsForExistingEmployee.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     @Override
     //This method is designed to add the Employee Details to the Database
-    public void addEmployee(Employee employee) {
-
-        //Removing the Spaces around the String by keeping spaces unchanged between two words
-        String tempEmployeeId = employee.getEmployeeId().strip().toLowerCase();
-        String tempEmployeeName = employee.getName().strip().toLowerCase();
-        String tempEmployeeDepartment = employee.getDepartment().strip().toLowerCase();
-        double employeeSalary = employee.getSalary();
+    public boolean addEmployee(Employee employee) {
 
         //Got Connection
         Connection connection = dataBaseConnection.getDataBaseConnection();
 
-        //conditions to check or validate all the data is passed correctly or not
-        if (!tempEmployeeId.isEmpty() && tempEmployeeName.length() > 1 &&
-                !tempEmployeeDepartment.isEmpty() && employeeSalary > 0) {
+        boolean isDepartmentExists = isDepartmentExists(employee.getDepartment());
+        boolean isEmployeeExists = isEmployeeExists(employee.getEmployeeId());
 
-            //Try-catch block to handle the Exceptions while Raised on Runtime
+        //Checking weather given EmployeeId is unique or not
+        //Checking weather given Department exists in department table or not
+        if (isEmployeeExists && isDepartmentExists) {
             try {
                 //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
-                PreparedStatement pstmtForExistingEmployee;
-                pstmtForExistingEmployee = connection.prepareStatement(RETRIEVE_EMPLOYEE_BY_ID_QUERY);
-                pstmtForExistingEmployee.setString(1, tempEmployeeId.toLowerCase());
-                //ResultSet for storing Employee Based on id
-                ResultSet rsForExistingEmployee = pstmtForExistingEmployee.executeQuery();
-                //.next() returns a boolean value if the data is present in table's next row
-                boolean confirmEmployee = rsForExistingEmployee.next();
+                PreparedStatement pstmtForAddingEmployee = connection.prepareStatement(INSERT_EMPLOYEE_QUERY);
+                pstmtForAddingEmployee.setString(1, employee.getEmployeeId());
+                pstmtForAddingEmployee.setString(2, employee.getName());
+                pstmtForAddingEmployee.setString(3, employee.getDepartment());
+                pstmtForAddingEmployee.setDouble(4, employee.getSalary());
 
-                //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
-                PreparedStatement pstmtForExistingDepartment;
-                pstmtForExistingDepartment = connection.prepareStatement(RETRIEVE_DEPARTMENT_BY_NAME_QUERY);
-                pstmtForExistingDepartment.setString(1, tempEmployeeDepartment.toLowerCase());
-                //ResultSet for storing Department Based on Name
-                ResultSet resultSetForDepartment = pstmtForExistingDepartment.executeQuery();
+                //initialising the number of rows Affected after executing the Query
+                int rowsAffected = pstmtForAddingEmployee.executeUpdate();
 
-
-                boolean confirmDepartment = resultSetForDepartment.next();
-                //Checking weather given EmployeeId is unique or not
-                //Checking weather given Department exists in department table or not
-                if (!confirmEmployee && confirmDepartment) {
-                    try {
-                        //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
-                        PreparedStatement pstmtForAddingEmployee = connection.prepareStatement(INSERT_EMPLOYEE_QUERY);
-                        pstmtForAddingEmployee.setString(1, tempEmployeeId.toLowerCase());
-                        pstmtForAddingEmployee.setString(2, tempEmployeeName);
-                        pstmtForAddingEmployee.setString(3, tempEmployeeDepartment);
-                        pstmtForAddingEmployee.setDouble(4, employeeSalary);
-
-                        //initialising the number of rows Affected after executing the Query
-                        int rowsAffected = pstmtForAddingEmployee.executeUpdate();
-                        connection.close();
-
-                        //Checking how many rows are Affected in a row to know whether record is updated or not
-                        if (rowsAffected > 0) {
-                            System.out.println();
-                            System.out.println("Employee Added Successfully");
-                            System.out.println();
-                            //close the connections
-                            resultSetForDepartment.close();
-                            rsForExistingEmployee.close();
-                        }
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                } //If control comes to else then there is a chance of Duplicate id or no department matched with passed name
-                else {
-                    System.out.println();
-                    System.out.println("Invalid input or Duplicate EmployeeId Please try Again");
-                    System.out.println();
+                //Checking how many rows are Affected in a row to know whether record is updated or not
+                if (rowsAffected > 0) {
+                    return true;
                 }
-
             } catch (SQLException e) {
+                System.out.println("An Error Occurred while inserting Employee " +
+                        "Details into Database." + e.getMessage());
                 throw new RuntimeException(e);
+            } finally {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        } else {
-            System.out.println();
-            System.out.println("Invalid input or Duplicate EmployeeId Please try Again");
-            System.out.println();
+        }//If control comes to else then there is a chance of Duplicate id
+        // or no department matched with passed name
+        else {
+            return false;
         }
+        return false;
     }
 
     @Override
@@ -134,7 +158,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
     public void getEmployeeById(String employeeId) {
 
         //Calling the returnEmployee() and storing Employees Object
-        Employee employee = findEmployee(employeeId);
+        Employee employee = findEmployeeById(employeeId);
         //checking weather the returned Object is null or not
         if (employee == null) {
             //If Null then there is no employee Exists with id
@@ -154,16 +178,14 @@ public class EmployeeDaoImpl implements EmployeeDao {
     }
 
     //This method is designed to return the Employees Object if passed id matches wth the employeeId in the Database
-    public Employee findEmployee(String employeeId) {
-        String tempEmployeeId = employeeId.strip();
-        tempEmployeeId = tempEmployeeId.toLowerCase();
+    public Employee findEmployeeById(String employeeId) {
 
         //getting connection for the database
         Connection connection = dataBaseConnection.getDataBaseConnection();
         try {
             //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
             PreparedStatement preparedStatement = connection.prepareStatement(RETRIEVE_EMPLOYEE_BY_ID_QUERY);
-            preparedStatement.setString(1, tempEmployeeId);
+            preparedStatement.setString(1, employeeId);
 
             //ResultSet for storing Employee Based on id
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -171,25 +193,27 @@ public class EmployeeDaoImpl implements EmployeeDao {
             //.next() returns a boolean value if the data is present in table's next row
             //If the data is present then this will return an Anonymous Employees Object
             if (resultSet.next()) {
-                return new Employee(resultSet.getString("employee_id"),
+                Employee foundEmployee = new Employee(resultSet.getString("employee_id"),
                         resultSet.getString("name"),
                         resultSet.getString("department"),
                         resultSet.getDouble("salary"));
-            } //If there is no data in table then it will return null
-            else {
-                connection.close();
-                return null;
+
+                return foundEmployee;
             }
         } //Catch Block to handle Exceptions in Runtime
         catch (SQLException e) {
+            System.out.println("An Error Occurred while Fetching Employee " +
+                    "Detains into Database." + e.getMessage());
             throw new RuntimeException(e);
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                 throw new RuntimeException(e);
             }
         }
+        return null;
     }
 
     @Override
@@ -203,8 +227,8 @@ public class EmployeeDaoImpl implements EmployeeDao {
         tempDepartmentName = tempDepartmentName.strip();
 
         ResultSet resultSetForAverageSalary;
-        ResultSet resultSetForEmployeeList = null;
-        ResultSet resultSetForCount = null;
+        ResultSet resultSetForEmployeeList;
+        ResultSet resultSetForCount;
         try {
             //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
             PreparedStatement preparedStatementForCount = connection.prepareStatement(COUNT_OF_EMPLOYEES_BY_DEPT_NAME);
@@ -254,12 +278,13 @@ public class EmployeeDaoImpl implements EmployeeDao {
             }
         } //Catch block to handle the Exceptions
         catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println("An Error Occurred while Preparing Department " +
+                    "Report from Database." + e.getMessage());
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
             }
         }
     }
@@ -278,11 +303,10 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
         if (!tempEmployeeId.isEmpty() && !tempEmployeeDepartment.isEmpty()) {
 
-            Employee employee = findEmployee(tempEmployeeId);
+            Employee employee = findEmployeeById(tempEmployeeId);
             //Checking weather given EmployeeId is present or not
             if (employee != null) {
-
-                boolean confirmDepartment;
+                boolean confirmDepartment = false;
                 try {
                     //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
                     PreparedStatement pstmtForExistingDepartment;
@@ -295,7 +319,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                     confirmDepartment = resultSetForDepartment.next();
 
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    System.out.println("An Error Occurred while Promoting the Employee" + e.getMessage());
                 }
                 //Checking weather given Department exist in department table or not
                 if (confirmDepartment) {
@@ -318,13 +342,12 @@ public class EmployeeDaoImpl implements EmployeeDao {
                         }
 
                     } catch (SQLException e) {
-                        syso("", e.getMessage())
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Promoting the Employee" + e.getMessage());
                     }  finally {
                         try {
                             connection.close();
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                         }
                     }
                 } //Else block if provided Department is not Valid.
@@ -336,7 +359,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                     try {
                         connection.close();
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                     }
 
                 }// Else block if provided Employee id is not Valid.
@@ -348,7 +371,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                     try {
                         connection.close();
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                     }
             }
         } //Else Block For Empty Data
@@ -371,7 +394,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
         if (!tempEmployeeId.isEmpty()) {
 
-            Employee employee = findEmployee(tempEmployeeId);
+            Employee employee = findEmployeeById(tempEmployeeId);
             //Checking weather given EmployeeId is present or not
             if (employee != null) {
 
@@ -396,23 +419,18 @@ public class EmployeeDaoImpl implements EmployeeDao {
                             connection.close();
                         }
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Incrementing the Employee Salary" + e.getMessage());
+                    }finally {
+                        try {
+                            connection.close();
+                        } catch (SQLException e) {
+                            System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
+                        }
                     }
                 } //Else block if provided Salary is less than current one
                 else {
                     System.out.println("Invalid Salary, Please provide a higher salary than the " +
                             "current salary (" + employee.getSalary() + ").");
-                    try {
-                        connection.close();
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }  finally {
-                        try {
-                            connection.close();
-                        } catch (SQLException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
                 }
             } //Else block if provided Employee id is not Valid.
             else {
@@ -420,7 +438,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                     try {
                         connection.close();
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                     }
             }
         } //Else Block For Empty Data
@@ -444,11 +462,11 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
         if (!tempEmployeeId.isEmpty() && !tempEmployeeDepartment.isEmpty()) {
 
-            Employee employee = findEmployee(tempEmployeeId);
+            Employee employee = findEmployeeById(tempEmployeeId);
             //Checking weather given EmployeeId is present or not
             if (employee != null) {
 
-                boolean confirmDepartment;
+                boolean confirmDepartment = false;
                 try {
                     //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
                     PreparedStatement pstmtForExistingDepartment;
@@ -463,7 +481,8 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
 
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    System.out.println("An Error Occurred while Promoting and" +
+                            " Incrementing the Employee Salary" + e.getMessage());
                 }
                 //Checking weather given Department exist in department table or not
                 if (confirmDepartment) {
@@ -490,7 +509,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                                 connection.close();
                             }
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println("An Error Occurred while Promoting and Incrementing the Employee Salary" + e.getMessage());
                         }
 
                     }//Else block if provided Salary is less than current one
@@ -502,7 +521,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                         try {
                             connection.close();
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                         }
                     }
                 }//  Else block if provided Department is not Valid.
@@ -513,7 +532,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                     try {
                         connection.close();
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                     }
                 }
             } // Else block if provided Employee id is not Valid.
@@ -543,7 +562,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
         //Checking whether the provided employeeId is empty or it contains any value
         if (!tempEmployeeId.isEmpty()) {
 
-            Employee employee = findEmployee(tempEmployeeId);
+            Employee employee = findEmployeeById(tempEmployeeId);
             if (employee != null) {
                 //initialising the PaySlipDaoImplementation to call methods inside it
                 PaySlipDaoImpl paySlipDaoImpl = new PaySlipDaoImpl();
@@ -552,7 +571,6 @@ public class EmployeeDaoImpl implements EmployeeDao {
                 if (payslip != null) {
 
                     try {
-
                         recoveryPaySlipDaoImpl.movePaySlips(tempEmployeeId);
 
                         //Prepared Statement using Connection and Setting the dynamic values which are
@@ -570,12 +588,12 @@ public class EmployeeDaoImpl implements EmployeeDao {
                         }
 
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Removing the Employee" + e.getMessage());
                     }  finally {
                         try {
                             connection.close();
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                         }
                     }
                 } //Else block to settle the PaySlips
@@ -586,7 +604,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                         try {
                             connection.close();
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                         }
                 }
             } // Else Block for Not found Employee
@@ -597,7 +615,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
                     try {
                         connection.close();
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                     }
             }
 
@@ -611,84 +629,40 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
     @Override
     //This method is designed to update the Existing Employee Details
-    public void updateEmployeeById(Employee employee) {
+    public boolean updateEmployeeById(Employee employee) {
 
         //Got Connection
         Connection connection = dataBaseConnection.getDataBaseConnection();
-        //Removing the Spaces around the String by keeping spaces unchanged between two words
-        String tempEmployeeId = employee.getEmployeeId().strip().toLowerCase();
-        String tempEmployeeName = employee.getName().strip().toLowerCase();
-        String tempEmployeeDepartment = employee.getDepartment().strip().toLowerCase();
-        double employeeSalary = employee.getSalary();
 
-        //conditions to check or validate all the data is passed correctly or not
-        if (!tempEmployeeId.isEmpty() && tempEmployeeName.length() > 1 &&
-                !tempEmployeeDepartment.isEmpty() && employeeSalary > 0) {
-
-            try {
-                //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
-                PreparedStatement pstmttForExistingEmployee;
-                pstmttForExistingEmployee = connection.prepareStatement(RETRIEVE_EMPLOYEE_BY_ID_QUERY);
-                pstmttForExistingEmployee.setString(1, tempEmployeeId.toLowerCase());
-                //ResultSet for storing Employee Based on id
-                ResultSet rsForExistingEmployee = pstmttForExistingEmployee.executeQuery();
-                //Confirming weather the Employee is present or not with respect to the employee id
-                boolean confirmEmployee = rsForExistingEmployee.next();
-
-                //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
-                PreparedStatement pstmtForExistingDepartment = connection.prepareStatement(RETRIEVE_DEPARTMENT_BY_NAME_QUERY);
-                pstmtForExistingDepartment.setString(1, tempEmployeeDepartment.toLowerCase());
-                //ResultSet for storing Department Based on department name
-                ResultSet rsForDepartment = pstmtForExistingDepartment.executeQuery();
-                boolean confirmDepartment = rsForDepartment.next();
+                boolean existingEmployee = isEmployeeExists(employee.getEmployeeId());
+                boolean existingDepartment = isDepartmentExists(employee.getDepartment());
 
                 //Checking weather the given employee id and department exists in the database or not
-                if (confirmEmployee && confirmDepartment) {
+                if (existingEmployee && existingDepartment) {
                     try {
                         //Prepared Statement using Connection and Setting the dynamic values which are received as arguments
                         PreparedStatement pstmtForUpdatingEmployee = connection.prepareStatement(UPDATE_EMPLOYEE_QUERY);
-                        pstmtForUpdatingEmployee.setString(4, tempEmployeeId.toLowerCase());
-                        pstmtForUpdatingEmployee.setString(1, tempEmployeeName);
-                        pstmtForUpdatingEmployee.setString(2, tempEmployeeDepartment);
-                        pstmtForUpdatingEmployee.setDouble(3, employeeSalary);
-
+                        pstmtForUpdatingEmployee.setString(4, employee.getEmployeeId());
+                        pstmtForUpdatingEmployee.setString(1, employee.getName());
+                        pstmtForUpdatingEmployee.setString(2, employee.getDepartment());
+                        pstmtForUpdatingEmployee.setDouble(3, employee.getSalary());
 
                         //initialising the number of rows Affected after executing the Query
                         int rowsAffected = pstmtForUpdatingEmployee.executeUpdate();
                         //Checking weather the data is inserted or not
                         if (rowsAffected > 0) {
-                            System.out.println();
-                            System.out.println("Employee Details Updated Successfully");
-                            System.out.println();
+                            return true;
                         }
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("An Error Occurred while Updating the Employee Details" + e.getMessage());
                     }  finally {
                         try {
                             connection.close();
                         } catch (SQLException e) {
-                            throw new RuntimeException(e);
+                            System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
                         }
                     }
-
-                } //Else Block when Employee is not present in database
-                else {
-                    System.out.println();
-                    System.out.println("Invalid input or EmployeeId Not found Please try Again");
-                    System.out.println();
-                    //Closing the Connections
-                    connection.close();
-                    rsForDepartment.close();
-                    rsForExistingEmployee.close();
                 }
-
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            System.out.println();
-            System.out.println("Invalid input or EmployeeId Not found Please try Again");
-            System.out.println();
-        }
+            return false;
     }
 }
