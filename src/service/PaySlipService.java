@@ -30,7 +30,7 @@ public class PaySlipService {
 
     }
 
-    public void generatePaySlipFile(Employee employee, HashMap<String, Double> financeMap) {
+    public boolean generatePaySlipFile(Employee employee, HashMap<String, Double> financeMap) {
 
         //Using System millis to keep the separate file for each one
         String filename = System.currentTimeMillis() + employee.getName() + ".word";
@@ -50,9 +50,10 @@ public class PaySlipService {
             writer.write("\n Employee Total Deduction towards Tax : " + tax);
             writer.write("\n Employee Net or InHand Salary : " + netSalary);
             writer.close();
+            return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
+    
 }
