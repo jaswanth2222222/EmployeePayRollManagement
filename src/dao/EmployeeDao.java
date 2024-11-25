@@ -11,24 +11,21 @@ public interface EmployeeDao {
     boolean addEmployee(Employee employee);
 
     //Abstract method for Retrieving the Employee Details based on their Unique Employee id
-    void getEmployeeById(String employeeId);
+    Employee findEmployeeById(String employeeId);
 
     //Abstract method for Updating existing Employee in the Database with their respective Employee id
     boolean updateEmployeeById(Employee employee);
 
-    //Abstract method for Retrieving Employees with respect to their working Departments
-    void generateDepartmentReport(String departmentName);
-
     //Abstract method for Promoting The Employee
-    void promoteEmployee(String employeeId, String departmentName);
+    boolean promoteEmployee(String employeeId, String departmentName);
 
     //Abstract method for Incrementing the Employee Salary
-    void incrementEmployee(String employeeId, double salary);
+    boolean incrementEmployee(String employeeId, double salary);
 
     //Abstract method for Promoting and Incrementing the Employee
-    void promoteAndIncrementEmployee(Employee employee);
+    boolean promoteAndIncrementEmployee(String employeeId, String departmentName, double salary);
 
     //Abstract method for Deleting the Employee from DataBase
-    void deleteEmployee(String employeeId);
+    boolean deleteEmployee(String employeeId);
 
 }
