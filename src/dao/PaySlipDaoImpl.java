@@ -1,12 +1,10 @@
 package dao;
 
-import model.Employee;
-import service.PaySlipService;
 import model.Payslip;
 
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PaySlipDaoImpl implements PaySlipDao {
 
@@ -18,14 +16,15 @@ public class PaySlipDaoImpl implements PaySlipDao {
 	// Query for Deleting the Set of records when they match with passed employee id
 	private static final String DELETE_PAY_SLIPS_QUERY = "delete from payslips where employee_id = ?";
 	final EmployeeDaoImpl employeeDaoImpl = new EmployeeDaoImpl();
+    Logger logger = Logger.getLogger(EmployeeDaoImpl.class.getName());
 	final DataBaseConnection dataBaseConnection = new DataBaseConnection();
 
 	@Override
 	// This method is Designed to add the record into a Word file and table
 	public boolean generatePaySlip(Payslip payslip) {
 
-		try (Connection connection = dataBaseConnection.getDataBaseConnection();
-				PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PAY_SLIP_QUERY);) {
+		try (Connection connection = dataBaseConnection.mySqlConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PAY_SLIP_QUERY);) {
 			// Prepared Statement using Connection and Setting the dynamic values which are
 			// received as arguments
 
@@ -42,8 +41,8 @@ public class PaySlipDaoImpl implements PaySlipDao {
 			}
 		} // To Handle Exception raised by database
 		catch (SQLException e) {
-			System.out.println("An Error Occurred while Generating the Payslip" + e.getMessage());
-			throw new RuntimeException(e);
+            logger.log(Level.SEVERE, "An Error Occurred While Generating the Payslip. " + e);
+            throw new RuntimeException(e);
 		}
 		return false;
 	}
@@ -53,7 +52,7 @@ public class PaySlipDaoImpl implements PaySlipDao {
 	public Payslip findPaySlip(String employeeId) {
 
 		// Establishing the Connection
-		Connection connection = dataBaseConnection.getDataBaseConnection();
+		Connection connection = dataBaseConnection.mySqlConnection();
 		// Stripping the Strings to remove the spaces around the String
 		String tempEmployeeId = employeeId.strip().toLowerCase();
 		// Entering Block if EmployeeId is not empty
@@ -78,13 +77,8 @@ public class PaySlipDaoImpl implements PaySlipDao {
 							rsForPaySlip.getDouble("net_salary"), rsForPaySlip.getDate("date_generated").toLocalDate());
 				}
 			} catch (SQLException e) {
-				throw new RuntimeException(e);
-			} finally {
-				try {
-					connection.close();
-				} catch (SQLException e) {
-					System.out.println("An Error Occurred while Closing the Connection" + e.getMessage());
-				}
+                logger.log(Level.SEVERE, "An Error Occurred While Fetching the Payslip Information. " + e);
+                throw new RuntimeException(e);
 			}
 		} // Else Block For Empty Data
 		else {
@@ -103,8 +97,8 @@ public class PaySlipDaoImpl implements PaySlipDao {
 
 		// Establishing the Connection
 
-		try (Connection connection = dataBaseConnection.getDataBaseConnection();
-				PreparedStatement preparedStatement = connection.prepareStatement(DELETE_PAY_SLIPS_QUERY);) {
+		try (Connection connection = dataBaseConnection.mySqlConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_PAY_SLIPS_QUERY);) {
 			// Prepared Statement using Connection and Setting the dynamic values which are
 			// received as arguments
 			preparedStatement.setString(1, employeeId);
@@ -113,7 +107,8 @@ public class PaySlipDaoImpl implements PaySlipDao {
 			return true;
 
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+            logger.log(Level.SEVERE, "An Error Occurred While Deleting the PaySlip Information. " + e);
+            throw new RuntimeException(e);
 		}
 	}
 }

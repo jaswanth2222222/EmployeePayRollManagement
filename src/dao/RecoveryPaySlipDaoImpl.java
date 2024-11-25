@@ -3,6 +3,8 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RecoveryPaySlipDaoImpl implements RecoveryPaySlipDao {
 
@@ -12,6 +14,7 @@ public class RecoveryPaySlipDaoImpl implements RecoveryPaySlipDao {
 	// initialising the Connection Class to call getConnection() Method it can be
 	// used in any of the method
 	final DataBaseConnection dataBaseConnection = new DataBaseConnection();
+	Logger logger = Logger.getLogger(EmployeeDaoImpl.class.getName());
 
 	@Override
 	public boolean movePaySlips(String employeeId) {
@@ -19,8 +22,8 @@ public class RecoveryPaySlipDaoImpl implements RecoveryPaySlipDao {
 		// initialising the PaySlipDaoImplementation to call methods inside it
 		PaySlipDaoImpl paySlipDaoImpl = new PaySlipDaoImpl();
 
-		try (Connection connection = dataBaseConnection.getDataBaseConnection();
-				PreparedStatement preparedStatement = connection.prepareStatement(COPY_PAYSLIPS_QUERY);) {
+		try (Connection connection = dataBaseConnection.mySqlConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(COPY_PAYSLIPS_QUERY);) {
 			// Prepared Statement using Connection and Setting the dynamic values which are
 			// received as arguments
 			preparedStatement.setString(1, employeeId);
@@ -31,7 +34,7 @@ public class RecoveryPaySlipDaoImpl implements RecoveryPaySlipDao {
 				return true;
 			}
 		} catch (SQLException e) {
-			System.out.println("An Error Occurred while Removing the Employee Details" + e.getMessage());
+			logger.log(Level.SEVERE, "An Error Occurred While Moving Payslips. " + e);
 			throw new RuntimeException(e);
 		}
 		return false;
