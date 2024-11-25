@@ -1,5 +1,7 @@
 Language: Java
-Database: MySql
+
+Database: MySql, SqlServer
+
 Resources: mysql-connector-j-9.1.0.jar (This resource has been added in the ProjectStructure -> Modules -> Dependencies ->
                                         + -> add Jar file or dependency -> select file and apply)
 
