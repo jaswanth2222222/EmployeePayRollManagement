@@ -22,7 +22,8 @@ PaySlipService.java
         This will act like a Service layer as it calculates the deductions of an employee salary which is business logic.
         Also used BufferedWriter to write the payslip details in the file.
 
-MySql Commands :
+MySql Commands
+
     Employee table :
         create table employees (
         employee_id varchar(25) primary key,
