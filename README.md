@@ -61,12 +61,20 @@ MySql Commands
 
 USAGE INSTRUCTIONS:
     1.Please follow the guidelines and pick a valid number in given range
+    
     2.Please Provide Valid input for adding and updating the Employee
+    
         2.1.Avoid spaces before and after names (you can keep in between)
+        
         2.2.Avoid providing only spaces
+        
         2.3.Ensure that name must be the minimum length of 2 while adding and updating the Employee
+    
     3.Avoid using spaces in Department names
+    
         3.1.There will be no spaces in department names
+    
     4.Ensure that you are not passing empty data to any field
+    
     5.Make Sure that before deleting employee paySlip is Generated
 
